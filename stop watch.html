@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stopwatch | Time Machine Mode</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+    }
+
+    .container {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      width: 350px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 2rem;
+    }
+
+    .time {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .buttons button {
+      margin: 5px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+
+    .buttons button:hover {
+      transform: scale(1.05);
+    }
+
+    .start { background: #4CAF50; color: white; }
+    .pause { background: #f39c12; color: white; }
+    .reset { background: #e74c3c; color: white; }
+    .lap { background: #2980b9; color: white; }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 15px;
+    }
+
+    li {
+      background: rgba(255, 255, 255, 0.2);
+      margin: 5px 0;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    li:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .note {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Stopwatch ⏱</h1>
+    <div class="time" id="display">00:00:00.000</div>
+    <div class="buttons">
+      <button class="start" onclick="startStopwatch()">Start</button>
+      <button class="pause" onclick="pauseStopwatch()">Pause</button>
+      <button class="reset" onclick="resetStopwatch()">Reset</button>
+      <button class="lap" onclick="recordLap()">Lap</button>
+    </div>
+    <ul id="laps"></ul>
+    <div class="note">💡 Click on a lap to go back (Time Machine Mode)</div>
+  </div>
+
+  <script>
+    let startTime, updatedTime, difference = 0, tInterval;
+    let running = false;
+    let lapCount = 0;
+    let lapTimes = [];
+
+    const display = document.getElementById("display");
+    const laps = document.getElementById("laps");
+
+    function updateTime() {
+      updatedTime = new Date().getTime() - startTime + difference;
+      let hours = Math.floor(updatedTime / (1000 * 60 * 60));
+      let minutes = Math.floor((updatedTime % (1000 * 60 * 60)) / (1000 * 60));
+      let seconds = Math.floor((updatedTime % (1000 * 60)) / 1000);
+      let milliseconds = updatedTime % 1000;
+
+      display.innerHTML = 
+        (hours < 10 ? "0" + hours : hours) + ":" +
+        (minutes < 10 ? "0" + minutes : minutes) + ":" +
+        (seconds < 10 ? "0" + seconds : seconds) + "." +
+        (milliseconds < 100 ? (milliseconds < 10 ? "00" : "0") + milliseconds : milliseconds);
+    }
+
+    function startStopwatch() {
+      if (!running) {
+        startTime = new Date().getTime();
+        tInterval = setInterval(updateTime, 1);
+        running = true;
+      }
+    }
+
+    function pauseStopwatch() {
+      if (running) {
+        clearInterval(tInterval);
+        difference = updatedTime;
+        running = false;
+      }
+    }
+
+    function resetStopwatch() {
+      clearInterval(tInterval);
+      running = false;
+      difference = 0;
+      display.innerHTML = "00:00:00.000";
+      laps.innerHTML = "";
+      lapTimes = [];
+      lapCount = 0;
+    }
+
+    function recordLap() {
+      if (running) {
+        lapCount++;
+        lapTimes.push(updatedTime);
+        let li = document.createElement("li");
+        li.textContent = `Lap ${lapCount}: ${display.innerHTML}`;
+        li.onclick = () => timeMachine(lapCount - 1);
+        laps.appendChild(li);
+      }
+    }
+
+    // Advanced: Time Machine Mode
+    function timeMachine(lapIndex) {
+      clearInterval(tInterval);
+      running = false;
+      difference = lapTimes[lapIndex];
+      display.innerHTML = laps.children[lapIndex].textContent.split(": ")[1];
+      alert(`⏪ Time Machine: Jumped back to Lap ${lapIndex + 1}`);
+    }
+  </script>
+</body>
+</html>
